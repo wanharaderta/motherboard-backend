@@ -1,0 +1,95 @@
+[debug] [2026-01-15T00:57:36.357Z] ----------------------------------------------------------------------
+[debug] [2026-01-15T00:57:36.359Z] Command:       /opt/homebrew/Cellar/node/25.3.0/bin/node /opt/homebrew/bin/firebase deploy --only functions
+[debug] [2026-01-15T00:57:36.359Z] CLI Version:   15.3.0
+[debug] [2026-01-15T00:57:36.359Z] Platform:      darwin
+[debug] [2026-01-15T00:57:36.359Z] Node Version:  v25.3.0
+[debug] [2026-01-15T00:57:36.359Z] Time:          Thu Jan 15 2026 08:57:36 GMT+0800 (Central Indonesia Time)
+[debug] [2026-01-15T00:57:36.359Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-01-15T00:57:37.002Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-15T00:57:37.003Z] > authorizing via signed-in user (wanhardaengmaro@gmail.com)
+[debug] [2026-01-15T00:57:37.003Z] [iam] checking project motherboard-6d4ba for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2026-01-15T00:57:37.003Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:37.003Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:37.004Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions [none]
+[debug] [2026-01-15T00:57:37.004Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions x-goog-quota-user=projects/motherboard-6d4ba
+[debug] [2026-01-15T00:57:37.004Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2026-01-15T00:57:38.333Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions 200
+[debug] [2026-01-15T00:57:38.333Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2026-01-15T00:57:38.334Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:38.334Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:38.334Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/motherboard-6d4ba/serviceAccounts/motherboard-6d4ba@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2026-01-15T00:57:38.334Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/motherboard-6d4ba/serviceAccounts/motherboard-6d4ba@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2026-01-15T00:57:39.739Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/motherboard-6d4ba/serviceAccounts/motherboard-6d4ba@appspot.gserviceaccount.com:testIamPermissions 404
+[debug] [2026-01-15T00:57:39.739Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/motherboard-6d4ba/serviceAccounts/motherboard-6d4ba@appspot.gserviceaccount.com:testIamPermissions {"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}}
+[debug] [2026-01-15T00:57:39.739Z] [functions] service account IAM check errored, deploy may fail: Request to https://iam.googleapis.com/v1/projects/motherboard-6d4ba/serviceAccounts/motherboard-6d4ba@appspot.gserviceaccount.com:testIamPermissions had HTTP Error: 404, Unknown service account {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}},"response":{"statusCode":404}},"exit":1,"message":"Request to https://iam.googleapis.com/v1/projects/motherboard-6d4ba/serviceAccounts/motherboard-6d4ba@appspot.gserviceaccount.com:testIamPermissions had HTTP Error: 404, Unknown service account","status":404}
+[info] 
+[info] === Deploying to 'motherboard-6d4ba'...
+[info] 
+[info] i  deploying functions 
+[debug] [2026-01-15T00:57:39.743Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:39.743Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:39.743Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/cloudresourcemanager.googleapis.com [none]
+[debug] [2026-01-15T00:57:39.743Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/cloudresourcemanager.googleapis.com x-goog-quota-user=projects/motherboard-6d4ba
+[debug] [2026-01-15T00:57:41.212Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/cloudresourcemanager.googleapis.com 200
+[debug] [2026-01-15T00:57:41.212Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/cloudresourcemanager.googleapis.com [omitted]
+[debug] [2026-01-15T00:57:41.213Z] Unable to check that https://cloudresourcemanager.googleapis.com is enabled on motherboard-6d4ba. Calls to it will fail if it is not enabled
+[debug] [2026-01-15T00:57:41.214Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:41.214Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:41.214Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba [none]
+[debug] [2026-01-15T00:57:41.529Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba 200
+[debug] [2026-01-15T00:57:41.529Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba {"projectNumber":"567087465594","projectId":"motherboard-6d4ba","lifecycleState":"ACTIVE","name":"Motherboard","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-11-27T02:46:19.161372Z"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[debug] [2026-01-15T00:57:41.530Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:41.531Z] Checked if tokens are valid: true, expires at: 1768440690368
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2026-01-15T00:57:41.531Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:41.531Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:41.531Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/cloudbuild.googleapis.com [none]
+[debug] [2026-01-15T00:57:41.531Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/cloudbuild.googleapis.com x-goog-quota-user=projects/motherboard-6d4ba
+[debug] [2026-01-15T00:57:41.531Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/artifactregistry.googleapis.com [none]
+[debug] [2026-01-15T00:57:41.531Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/artifactregistry.googleapis.com x-goog-quota-user=projects/motherboard-6d4ba
+[debug] [2026-01-15T00:57:42.787Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/cloudbuild.googleapis.com 200
+[debug] [2026-01-15T00:57:42.787Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/cloudbuild.googleapis.com [omitted]
+[warn] ⚠  functions: missing required API cloudbuild.googleapis.com. Enabling now... 
+[debug] [2026-01-15T00:57:42.788Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:42.788Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:42.789Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/cloudbuild.googleapis.com:enable [none]
+[debug] [2026-01-15T00:57:42.789Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/cloudbuild.googleapis.com:enable x-goog-quota-user=projects/motherboard-6d4ba
+[debug] [2026-01-15T00:57:42.928Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/artifactregistry.googleapis.com 200
+[debug] [2026-01-15T00:57:42.928Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/artifactregistry.googleapis.com [omitted]
+[warn] ⚠  artifactregistry: missing required API artifactregistry.googleapis.com. Enabling now... 
+[debug] [2026-01-15T00:57:42.928Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:42.928Z] Checked if tokens are valid: true, expires at: 1768440690368
+[debug] [2026-01-15T00:57:42.928Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/artifactregistry.googleapis.com:enable [none]
+[debug] [2026-01-15T00:57:42.928Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/artifactregistry.googleapis.com:enable x-goog-quota-user=projects/motherboard-6d4ba
+[debug] [2026-01-15T00:57:43.305Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/cloudbuild.googleapis.com:enable 200
+[debug] [2026-01-15T00:57:43.305Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1/projects/motherboard-6d4ba/services/cloudbuild.googleapis.com:enable [omitted]
+[debug] [2026-01-15T00:57:43.451Z] Error: EPERM: operation not permitted, open '/Users/macbookair/.config/configstore/firebase-tools.json.1098122640'
+    at Object.openSync (node:fs:554:18)
+    at writeFile.writeFileSync [as sync] (/opt/homebrew/lib/node_modules/firebase-tools/node_modules/write-file-atomic/index.js:205:13)
+    at set all (/opt/homebrew/lib/node_modules/firebase-tools/node_modules/configstore/index.js:61:20)
+    at Configstore.set (/opt/homebrew/lib/node_modules/firebase-tools/node_modules/configstore/index.js:91:12)
+    at cacheEnabledAPI (/opt/homebrew/lib/node_modules/firebase-tools/lib/ensureApiEnabled.js:141:31)
+    at enable (/opt/homebrew/lib/node_modules/firebase-tools/lib/ensureApiEnabled.js:51:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async enableApiWithRetries (/opt/homebrew/lib/node_modules/firebase-tools/lib/ensureApiEnabled.js:102:5)
+    at async Object.cloudBuildEnabled (/opt/homebrew/lib/node_modules/firebase-tools/lib/deploy/functions/ensure.js:58:9)
+    at async Promise.all (index 2)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-01-15T00:57:43.703Z] Error: EPERM: operation not permitted, open '/Users/macbookair/.config/configstore/firebase-tools.json.4135468898'
+    at Object.openSync (node:fs:554:18)
+    at writeFile.writeFileSync [as sync] (/opt/homebrew/lib/node_modules/firebase-tools/node_modules/write-file-atomic/index.js:205:13)
+    at set all (/opt/homebrew/lib/node_modules/firebase-tools/node_modules/configstore/index.js:61:20)
+    at Configstore.delete (/opt/homebrew/lib/node_modules/firebase-tools/node_modules/configstore/index.js:101:12)
+    at process.<anonymous> (/opt/homebrew/lib/node_modules/firebase-tools/lib/bin/cli.js:65:45)
+    at process.emit (node:events:520:35)
+    at process.exit (node:internal/process/per_thread:236:15)
+    at Timeout._onTimeout (/opt/homebrew/lib/node_modules/firebase-tools/lib/errorOut.js:20:17)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+[error] 
+[error] Error: An unexpected error has occurred.

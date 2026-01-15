@@ -1,0 +1,165 @@
+{
+  "meta": {
+    "format": "JSON",
+    "version": "1.1.0",
+    "projectId": "motherboard-6d4ba",
+    "resourcePath": [
+      "users",
+      "dmqcbQ2f05epnKyXmdByub4QGTg1",
+      "routines"
+    ],
+    "description": "Example structure for routines subcollection"
+  },
+  "examples": {
+    "routine_with_hourType_AM": {
+      "routineId": "4qQ9Ysanhkmxg66szmzf",
+      "activityName": "Dinner",
+      "code": "bottles_meals",
+      "hour": 9,
+      "hourType": "AM",
+      "minute": 0,
+      "daysOfWeek": [2, 3, 4, 5, 6],
+      "isActive": true,
+      "kidID": "tmD5oSt936r75qzwebQ3",
+      "title": "Breakfast",
+      "description": "Morning meal",
+      "repetitionType": "weekly",
+      "imageURLs": [
+        "gs://motherboard-6d4ba.firebasestorage.app/routines/..."
+      ],
+      "createdAt": {
+        "__time__": "2026-01-07T14:28:25.104127Z"
+      },
+      "updatedAt": {
+        "__time__": "2026-01-07T14:28:25.104132Z"
+      }
+    },
+    "routine_with_hourType_PM": {
+      "routineId": "WiLOwk6ODzAxfGQ7Vm99",
+      "activityName": "Bottle",
+      "code": "bottles_meals",
+      "hour": 9,
+      "hourType": "PM",
+      "minute": 0,
+      "daysOfWeek": [2, 3, 4, 5, 6],
+      "isActive": true,
+      "kidID": "tmD5oSt936r75qzwebQ3",
+      "title": "Evening Bottle",
+      "description": "Night feeding",
+      "repetitionType": "weekly",
+      "metaData": {
+        "Ounces/mL": "350mL (12 Oz)"
+      },
+      "createdAt": {
+        "__time__": "2026-01-07T14:28:25.881719Z"
+      },
+      "updatedAt": {
+        "__time__": "2026-01-07T14:28:25.881724Z"
+      }
+    },
+    "routine_with_isPM": {
+      "routineId": "example123",
+      "activityName": "Lunch",
+      "code": "bottles_meals",
+      "hour": 12,
+      "isPM": false,
+      "minute": 30,
+      "daysOfWeek": [1, 2, 3, 4, 5],
+      "isActive": true,
+      "kidID": "tmD5oSt936r75qzwebQ3",
+      "title": "Lunch Time",
+      "repetitionType": "weekly",
+      "createdAt": {
+        "__time__": "2026-01-07T14:28:25.104127Z"
+      },
+      "updatedAt": {
+        "__time__": "2026-01-07T14:28:25.104132Z"
+      }
+    },
+    "routine_24hour_format": {
+      "routineId": "example456",
+      "activityName": "Snack",
+      "code": "bottles_meals",
+      "hour": 15,
+      "minute": 0,
+      "daysOfWeek": [1, 2, 3, 4, 5],
+      "isActive": true,
+      "kidID": "tmD5oSt936r75qzwebQ3",
+      "title": "Afternoon Snack",
+      "repetitionType": "weekly",
+      "createdAt": {
+        "__time__": "2026-01-07T14:28:25.104127Z"
+      },
+      "updatedAt": {
+        "__time__": "2026-01-07T14:28:25.104132Z"
+      }
+    }
+  },
+  "fieldDescriptions": {
+    "required": {
+      "hour": {
+        "type": "number",
+        "range": "1-12 (if using AM/PM) or 0-23 (if 24-hour format)",
+        "description": "Hour of the day"
+      },
+      "minute": {
+        "type": "number",
+        "range": "0-59",
+        "description": "Minute of the hour"
+      },
+      "kidID": {
+        "type": "string",
+        "description": "Reference to the kid document ID"
+      },
+      "daysOfWeek": {
+        "type": "array<number>",
+        "values": "0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday",
+        "description": "Days when the routine occurs"
+      },
+      "isActive": {
+        "type": "boolean",
+        "description": "Whether the routine is currently active"
+      }
+    },
+    "optional_am_pm": {
+      "hourType": {
+        "type": "string",
+        "values": ["AM", "PM"],
+        "description": "AM/PM indicator for 12-hour format. Use with hour 1-12."
+      },
+      "isPM": {
+        "type": "boolean",
+        "description": "Alternative to hourType. true = PM, false = AM. Use with hour 1-12."
+      }
+    },
+    "optional_other": {
+      "activityName": "string - Name of the activity",
+      "code": "string - Activity code identifier",
+      "title": "string - Display title",
+      "description": "string - Description text",
+      "imageURLs": "array<string> - Array of image storage URLs",
+      "repetitionType": "string - Type of repetition (e.g., 'weekly')",
+      "metaData": "object - Additional metadata key-value pairs",
+      "createdAt": "Timestamp - Creation timestamp",
+      "updatedAt": "Timestamp - Last update timestamp"
+    }
+  },
+  "conversionRules": {
+    "12hour_to_24hour": {
+      "AM": {
+        "1-11": "No change (1 AM = 1, 11 AM = 11)",
+        "12": "Becomes 0 (12 AM = 0)"
+      },
+      "PM": {
+        "1-11": "Add 12 (1 PM = 13, 11 PM = 23)",
+        "12": "No change (12 PM = 12)"
+      }
+    },
+    "examples": {
+      "9 AM": "hour: 9, hourType: 'AM' → hour24: 9",
+      "9 PM": "hour: 9, hourType: 'PM' → hour24: 21",
+      "12 AM": "hour: 12, hourType: 'AM' → hour24: 0",
+      "12 PM": "hour: 12, hourType: 'PM' → hour24: 12"
+    }
+  }
+}
