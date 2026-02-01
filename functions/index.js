@@ -711,21 +711,22 @@ async function sendRoutineEventNotification(userId, eventId, eventData) {
     });
     
     // Update event with notification status
+    // Always update status to "completed" regardless of notification success
     const eventRef = db
       .collection("users")
       .doc(userId)
       .collection("routineEvents")
       .doc(eventId);
     const sentOk = response.successCount > 0;
-    if (sentOk) {
-      await eventRef.update({
-        status: "completed",
-        notificationSent: true,
-        notificationSentAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-    } else {
-      // Keep status "pending" so scheduler can retry later
-      logger.warn(`Notification send had zero successes for ${eventId}`, {
+
+    await eventRef.update({
+      status: "completed",
+      notificationSent: sentOk,
+      notificationSentAt: sentOk ? admin.firestore.FieldValue.serverTimestamp() : null,
+    });
+
+    if (!sentOk) {
+      logger.warn(`Notification send had zero successes for ${eventId}, but status updated to completed`, {
         userId,
         routineId,
         dateKey,
@@ -966,6 +967,148 @@ exports.getNotificationHistory = onCall(
         stack: error.stack,
       });
       throw new Error(`Failed to get notification history: ${error.message}`);
+    }
+  }
+);
+
+// Scheduled function to mark past pending routine events as completed
+// Runs every 5 minutes and marks events with scheduledDateTime <= now and status == 'pending'
+// This prevents events from remaining in 'pending' after their scheduled time has passed.
+exports.markPastRoutineEventsCompleted = onSchedule(
+  {
+    schedule: "every 5 minutes",
+    timeZone: "America/New_York",
+    memory: "256MiB",
+    maxInstances: 1,
+  },
+  async (event) => {
+    try {
+      logger.info("Starting markPastRoutineEventsCompleted");
+
+      const now = new Date();
+      const nowTs = admin.firestore.Timestamp.fromDate(now);
+
+      const usersSnapshot = await db.collection("users").get();
+      if (usersSnapshot.empty) {
+        logger.info("No users found");
+        return;
+      }
+
+      for (const userDoc of usersSnapshot.docs) {
+        const userId = userDoc.id;
+
+        try {
+          const eventsSnapshot = await db
+            .collection("users")
+            .doc(userId)
+            .collection("routineEvents")
+            .where("status", "==", "pending")
+            .where("scheduledDateTime", "<=", nowTs)
+            .limit(500)
+            .get();
+
+          if (eventsSnapshot.empty) {
+            continue;
+          }
+
+          const batch = db.batch();
+          for (const doc of eventsSnapshot.docs) {
+            batch.update(doc.ref, {
+              status: "completed",
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+          }
+
+          await batch.commit();
+
+          logger.info(`Marked ${eventsSnapshot.size} past events as completed for user ${userId}`);
+        } catch (err) {
+          logger.error(`Error marking past events for user ${userId}`, {
+            userId,
+            error: err.message,
+            stack: err.stack,
+          });
+          // continue to next user
+        }
+      }
+
+      logger.info("markPastRoutineEventsCompleted completed");
+    } catch (error) {
+      logger.error("Error in markPastRoutineEventsCompleted", {
+        error: error.message,
+        stack: error.stack,
+      });
+      throw error;
+    }
+  }
+);
+
+// Callable admin endpoint to trigger immediate mark-as-completed for past events (useful for testing)
+exports.markPastRoutineEventsCompletedNow = onCall(
+  {
+    memory: "256MiB",
+    maxInstances: 1,
+  },
+  async (request) => {
+    const userId = request.data?.userId || request.auth?.uid;
+
+    if (!userId) {
+      throw new Error("User must be authenticated or userId must be provided");
+    }
+
+    logger.info("Manual trigger: markPastRoutineEventsCompletedNow", {
+      timestamp: new Date().toISOString(),
+      userId,
+      providedViaAuth: !!request.auth?.uid,
+      providedViaData: !!request.data?.userId,
+    });
+
+    try {
+      const now = new Date();
+      const nowTs = admin.firestore.Timestamp.fromDate(now);
+      let totalUpdated = 0;
+
+      while (true) {
+        const eventsSnapshot = await db
+          .collection("users")
+          .doc(userId)
+          .collection("routineEvents")
+          .where("status", "==", "pending")
+          .where("scheduledDateTime", "<=", nowTs)
+          .limit(500)
+          .get();
+
+        if (eventsSnapshot.empty) break;
+
+        const batch = db.batch();
+        for (const doc of eventsSnapshot.docs) {
+          batch.update(doc.ref, {
+            status: "completed",
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+
+        await batch.commit();
+        totalUpdated += eventsSnapshot.size;
+
+        if (eventsSnapshot.size < 500) break;
+      }
+
+      logger.info(`Marked ${totalUpdated} past events as completed for user ${userId}`);
+
+      return {
+        success: true,
+        updatedCount: totalUpdated,
+        userId,
+        timestamp: now.toISOString(),
+      };
+    } catch (error) {
+      logger.error("Error in markPastRoutineEventsCompletedNow", {
+        userId,
+        error: error.message,
+        stack: error.stack,
+      });
+      throw new Error(`Failed to mark past events: ${error.message}`);
     }
   }
 );

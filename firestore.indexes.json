@@ -1,0 +1,22 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "routineEvents",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "scheduledDateTime", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "routineEvents",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "notificationSent", "order": "ASCENDING" },
+        { "fieldPath": "scheduledDateTime", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
