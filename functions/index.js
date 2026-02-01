@@ -1,7 +1,13 @@
 const admin = require("firebase-admin");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {onCall} = require("firebase-functions/v2/https");
+const {defineSecret} = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
+const nodemailer = require("nodemailer");
+
+// Define secrets for email credentials
+const gmailEmail = defineSecret("GMAIL_EMAIL");
+const gmailAppPassword = defineSecret("GMAIL_APP_PASSWORD");
 
 admin.initializeApp();
 
@@ -1109,6 +1115,210 @@ exports.markPastRoutineEventsCompletedNow = onCall(
         stack: error.stack,
       });
       throw new Error(`Failed to mark past events: ${error.message}`);
+    }
+  }
+);
+
+// ============================================================
+// CAREGIVER INVITATION EMAIL
+// ============================================================
+
+function generateCaregiverInviteEmailHtml(caregiverName, kidName, code) {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caregiver Invitation</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 16px 16px 0 0;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
+                🍼 Motherboard
+              </h1>
+              <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">
+                Baby Care Made Simple
+              </p>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px; font-weight: 600;">
+                Hi ${caregiverName}! 👋
+              </h2>
+
+              <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                Great news! You've been invited to become a <strong>caregiver</strong> for <strong style="color: #6366f1;">${kidName}</strong> on Motherboard.
+              </p>
+
+              <p style="margin: 0 0 30px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                As a caregiver, you'll be able to track feedings, diaper changes, sleep schedules, and more. Use the code below to get started:
+              </p>
+
+              <!-- Invitation Code Box -->
+              <table role="presentation" style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                <tr>
+                  <td align="center">
+                    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px dashed #6366f1; border-radius: 12px; padding: 30px;">
+                      <p style="margin: 0 0 10px; color: #6b7280; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
+                        Your Invitation Code
+                      </p>
+                      <p style="margin: 0; color: #6366f1; font-size: 42px; font-weight: 700; letter-spacing: 8px; font-family: 'Courier New', monospace;">
+                        ${code}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Steps -->
+              <div style="background-color: #f9fafb; border-radius: 12px; padding: 24px; margin-bottom: 30px;">
+                <p style="margin: 0 0 16px; color: #1f2937; font-size: 16px; font-weight: 600;">
+                  How to join:
+                </p>
+                <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0; color: #4b5563; font-size: 15px;">
+                      <span style="display: inline-block; width: 28px; height: 28px; background-color: #6366f1; color: white; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 12px; font-weight: 600;">1</span>
+                      Download Motherboard from the App Store
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #4b5563; font-size: 15px;">
+                      <span style="display: inline-block; width: 28px; height: 28px; background-color: #6366f1; color: white; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 12px; font-weight: 600;">2</span>
+                      Create an account or sign in
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #4b5563; font-size: 15px;">
+                      <span style="display: inline-block; width: 28px; height: 28px; background-color: #6366f1; color: white; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 12px; font-weight: 600;">3</span>
+                      Enter the invitation code above
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- CTA Button -->
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td align="center">
+                    <a href="https://apps.apple.com/app/motherboard" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 50px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);">
+                      Download Motherboard
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 16px 16px; text-align: center;">
+              <p style="margin: 0 0 10px; color: #9ca3af; font-size: 14px;">
+                This invitation was sent to you because someone wants you to help care for their little one.
+              </p>
+              <p style="margin: 0; color: #9ca3af; font-size: 14px;">
+                © ${new Date().getFullYear()} Motherboard. Made with ❤️ for parents everywhere.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
+exports.sendCaregiverInviteEmail = onCall(
+  {
+    memory: "256MiB",
+    maxInstances: 10,
+    secrets: [gmailEmail, gmailAppPassword],
+  },
+  async (request) => {
+    const {toEmail, caregiverName, code, kidName} = request.data || {};
+
+    // Validate required fields
+    if (!toEmail || !caregiverName || !code || !kidName) {
+      logger.error("Missing required fields for caregiver invite email", {
+        hasToEmail: !!toEmail,
+        hasCaregiverName: !!caregiverName,
+        hasCode: !!code,
+        hasKidName: !!kidName,
+      });
+      throw new Error("Missing required fields: toEmail, caregiverName, code, kidName");
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(toEmail)) {
+      logger.error("Invalid email format", {toEmail});
+      throw new Error("Invalid email format");
+    }
+
+    logger.info("Sending caregiver invite email", {
+      toEmail,
+      caregiverName,
+      kidName,
+      codeLength: code.length,
+    });
+
+    try {
+      // Create transporter with Gmail
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: gmailEmail.value(),
+          pass: gmailAppPassword.value(),
+        },
+      });
+
+      // Generate HTML content
+      const htmlContent = generateCaregiverInviteEmailHtml(caregiverName, kidName, code);
+
+      // Send email
+      const mailOptions = {
+        from: `"Motherboard" <${gmailEmail.value()}>`,
+        to: toEmail,
+        subject: "You've been invited as a Caregiver on Motherboard!",
+        html: htmlContent,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+
+      logger.info("Caregiver invite email sent successfully", {
+        toEmail,
+        caregiverName,
+        kidName,
+        messageId: info.messageId,
+      });
+
+      return {
+        success: true,
+        messageId: info.messageId,
+      };
+    } catch (error) {
+      logger.error("Failed to send caregiver invite email", {
+        toEmail,
+        caregiverName,
+        kidName,
+        error: error.message,
+        stack: error.stack,
+      });
+      throw new Error(`Failed to send email: ${error.message}`);
     }
   }
 );
