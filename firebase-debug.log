@@ -1,0 +1,101 @@
+[debug] [2026-03-11T08:11:58.486Z] ----------------------------------------------------------------------
+[debug] [2026-03-11T08:11:58.493Z] Command:       /opt/homebrew/Cellar/node/25.3.0/bin/node /opt/homebrew/bin/firebase deploy
+[debug] [2026-03-11T08:11:58.493Z] CLI Version:   15.5.1
+[debug] [2026-03-11T08:11:58.493Z] Platform:      darwin
+[debug] [2026-03-11T08:11:58.493Z] Node Version:  v25.3.0
+[debug] [2026-03-11T08:11:58.493Z] Time:          Wed Mar 11 2026 16:11:58 GMT+0800 (Central Indonesia Time)
+[debug] [2026-03-11T08:11:58.493Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-03-11T08:11:58.494Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-03-11T08:11:59.293Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-03-11T08:11:59.293Z] > authorizing via signed-in user (wanhardaengmaro@gmail.com)
+[debug] [2026-03-11T08:11:59.293Z] [iam] checking project motherboard-6d4ba for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-03-11T08:11:59.293Z] Checked if tokens are valid: false, expires at: 1773107680461
+[debug] [2026-03-11T08:11:59.293Z] Checked if tokens are valid: false, expires at: 1773107680461
+[debug] [2026-03-11T08:11:59.294Z] > refreshing access token with scopes: []
+[debug] [2026-03-11T08:11:59.294Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-03-11T08:11:59.294Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-03-11T08:11:59.476Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-03-11T08:11:59.476Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-03-11T08:11:59.487Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions [none]
+[debug] [2026-03-11T08:11:59.487Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions  x-goog-user-project=motherboard-6d4ba
+[debug] [2026-03-11T08:11:59.487Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-03-11T08:11:59.873Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-03-11T08:11:59.874Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2026-03-11T08:11:59.927Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions 200
+[debug] [2026-03-11T08:11:59.927Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-03-11T08:11:59.928Z] Checked if tokens are valid: true, expires at: 1773220318476
+[debug] [2026-03-11T08:11:59.928Z] Checked if tokens are valid: true, expires at: 1773220318476
+[debug] [2026-03-11T08:11:59.928Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/motherboard-6d4ba/serviceAccounts/motherboard-6d4ba@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2026-03-11T08:11:59.928Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/motherboard-6d4ba/serviceAccounts/motherboard-6d4ba@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2026-03-11T08:12:01.435Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/motherboard-6d4ba/serviceAccounts/motherboard-6d4ba@appspot.gserviceaccount.com:testIamPermissions 404
+[debug] [2026-03-11T08:12:01.435Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/motherboard-6d4ba/serviceAccounts/motherboard-6d4ba@appspot.gserviceaccount.com:testIamPermissions {"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}}
+[debug] [2026-03-11T08:12:01.435Z] [functions] service account IAM check errored, deploy may fail: Request to https://iam.googleapis.com/v1/projects/motherboard-6d4ba/serviceAccounts/motherboard-6d4ba@appspot.gserviceaccount.com:testIamPermissions had HTTP Error: 404, Unknown service account {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}},"response":{"statusCode":404}},"exit":1,"message":"Request to https://iam.googleapis.com/v1/projects/motherboard-6d4ba/serviceAccounts/motherboard-6d4ba@appspot.gserviceaccount.com:testIamPermissions had HTTP Error: 404, Unknown service account","status":404}
+[info] 
+[info] === Deploying to 'motherboard-6d4ba'...
+[info] 
+[info] i  deploying firestore, functions 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-03-11T08:12:01.438Z] Checked if tokens are valid: true, expires at: 1773220318476
+[debug] [2026-03-11T08:12:01.439Z] Checked if tokens are valid: true, expires at: 1773220318476
+[debug] [2026-03-11T08:12:01.439Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/motherboard-6d4ba/databases/(default) [none]
+[debug] [2026-03-11T08:12:02.951Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/motherboard-6d4ba/databases/(default) 200
+[debug] [2026-03-11T08:12:02.951Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/motherboard-6d4ba/databases/(default) {"name":"projects/motherboard-6d4ba/databases/(default)","uid":"a60b2220-4fc1-41c2-bbee-46712bce741c","createTime":"2025-11-27T02:48:48.882961Z","updateTime":"2025-11-27T02:48:48.882961Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-03-11T07:12:02.876901Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IPbvgYezl5MDMJWpgLWo5pID"}
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[debug] [2026-03-11T08:12:02.957Z] Checked if tokens are valid: true, expires at: 1773220318476
+[debug] [2026-03-11T08:12:02.957Z] Checked if tokens are valid: true, expires at: 1773220318476
+[debug] [2026-03-11T08:12:02.957Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba [none]
+[debug] [2026-03-11T08:12:03.267Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba 200
+[debug] [2026-03-11T08:12:03.267Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba {"projectNumber":"567087465594","projectId":"motherboard-6d4ba","lifecycleState":"ACTIVE","name":"Motherboard","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-11-27T02:46:19.161372Z"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2026-03-11T08:12:03.269Z] Checked if tokens are valid: true, expires at: 1773220318476
+[debug] [2026-03-11T08:12:03.269Z] Checked if tokens are valid: true, expires at: 1773220318476
+[debug] [2026-03-11T08:12:03.269Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/motherboard-6d4ba/adminSdkConfig [none]
+[debug] [2026-03-11T08:12:03.968Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/motherboard-6d4ba/adminSdkConfig 200
+[debug] [2026-03-11T08:12:03.968Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/motherboard-6d4ba/adminSdkConfig {"projectId":"motherboard-6d4ba","storageBucket":"motherboard-6d4ba.firebasestorage.app"}
+[debug] [2026-03-11T08:12:03.972Z] Validating nodejs source
+[warn] ⚠  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2026-03-11T08:12:04.885Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "24"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.0",
+    "nodemailer": "^7.0.13"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.4.1"
+  },
+  "private": true
+}
+[debug] [2026-03-11T08:12:04.885Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[debug] [2026-03-11T08:12:04.886Z] Could not find functions.yaml. Must use http discovery
+[debug] [2026-03-11T08:12:04.893Z] Found firebase-functions binary at '/Users/macbookair/Documents/project/motherboard-backend/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8323
+
+[debug] [2026-03-11T08:12:05.328Z] Got response from /__/functions.yaml {"endpoints":{"ensureRoutineEvents":{"availableMemoryMb":256,"timeoutSeconds":null,"minInstances":null,"maxInstances":1,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every day 00:05","retryConfig":{},"timeZone":"America/New_York"},"entryPoint":"ensureRoutineEvents"},"generateTodayRoutineEvents":{"availableMemoryMb":256,"timeoutSeconds":null,"minInstances":null,"maxInstances":1,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"generateTodayRoutineEvents"},"checkAndSendRoutineNotifications":{"availableMemoryMb":256,"timeoutSeconds":null,"minInstances":null,"maxInstances":1,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every 5 minutes","retryConfig":{},"timeZone":"America/New_York"},"entryPoint":"checkAndSendRoutineNotifications"},"getUpcomingRoutineEvents":{"availableMemoryMb":256,"timeoutSeconds":null,"minInstances":null,"maxInstances":10,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"getUpcomingRoutineEvents"},"getNotificationHistory":{"availableMemoryMb":256,"timeoutSeconds":null,"minInstances":null,"maxInstances":10,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"getNotificationHistory"},"markPastRoutineEventsCompleted":{"availableMemoryMb":256,"timeoutSeconds":null,"minInstances":null,"maxInstances":1,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every 5 minutes","retryConfig":{},"timeZone":"America/New_York"},"entryPoint":"markPastRoutineEventsCompleted"},"markPastRoutineEventsCompletedNow":{"availableMemoryMb":256,"timeoutSeconds":null,"minInstances":null,"maxInstances":1,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"markPastRoutineEventsCompletedNow"},"markMissedRoutineEvents":{"availableMemoryMb":256,"timeoutSeconds":null,"minInstances":null,"maxInstances":1,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"markMissedRoutineEvents"},"markMissedRoutineEventsScheduled":{"availableMemoryMb":256,"timeoutSeconds":null,"minInstances":null,"maxInstances":1,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"scheduleTrigger":{"schedule":"every 5 minutes","retryConfig":{},"timeZone":"America/New_York"},"entryPoint":"markMissedRoutineEventsScheduled"},"sendParentAccessRequestEmail":{"availableMemoryMb":256,"timeoutSeconds":null,"minInstances":null,"maxInstances":10,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"sendParentAccessRequestEmail"},"sendCaregiverInviteEmail":{"availableMemoryMb":256,"timeoutSeconds":null,"minInstances":null,"maxInstances":10,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"sendCaregiverInviteEmail"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[info] i  extensions: ensuring required API firebaseextensions.googleapis.com is enabled... 
+[debug] [2026-03-11T08:12:09.354Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-03-11T08:12:09.354Z] > authorizing via signed-in user (wanhardaengmaro@gmail.com)
+[debug] [2026-03-11T08:12:09.354Z] [iam] checking project motherboard-6d4ba for permissions ["firebase.projects.get","firebaseextensions.instances.list"]
+[debug] [2026-03-11T08:12:09.354Z] Checked if tokens are valid: true, expires at: 1773220318476
+[debug] [2026-03-11T08:12:09.354Z] Checked if tokens are valid: true, expires at: 1773220318476
+[debug] [2026-03-11T08:12:09.355Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions [none]
+[debug] [2026-03-11T08:12:09.355Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions  x-goog-user-project=motherboard-6d4ba
+[debug] [2026-03-11T08:12:09.355Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/motherboard-6d4ba:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}

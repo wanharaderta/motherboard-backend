@@ -1,13 +1,14 @@
 const admin = require("firebase-admin");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {onCall} = require("firebase-functions/v2/https");
-const {defineSecret} = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const nodemailer = require("nodemailer");
 
-// Define secrets for email credentials
-const gmailEmail = defineSecret("GMAIL_EMAIL");
-const gmailAppPassword = defineSecret("GMAIL_APP_PASSWORD");
+// Email credentials (untuk production, gunakan Firebase secrets)
+const EMAIL_CONFIG = {
+  user: "wanhardaengmaro@gmail.com",
+  pass: "mpdvqurtdwdjsyvx",
+};
 
 admin.initializeApp();
 
@@ -297,40 +298,44 @@ async function ensureEventsForDate(dateInfo, routinesSnapshot, userId, deleteExi
     .get();
   
   let existingDocIds;
-  
-  // If deleteExisting is true, delete all existing events for this date
+
+  // If deleteExisting is true, only delete events that are still 'pending'
+  // (preserve events that have already transitioned to ongoing/missed/completed)
   if (deleteExisting && !existingEventsSnapshot.empty) {
-    logger.info(`Deleting ${existingEventsSnapshot.size} existing events for ${dateKey}`, {
+    const pendingDocs = existingEventsSnapshot.docs.filter(
+      (doc) => doc.data().status === "pending"
+    );
+    const nonPendingDocs = existingEventsSnapshot.docs.filter(
+      (doc) => doc.data().status !== "pending"
+    );
+
+    logger.info(`Deleting ${pendingDocs.length} pending events for ${dateKey} (preserving ${nonPendingDocs.length} non-pending)`, {
       userId,
       dateKey,
     });
-    
-    const batchSize = 500;
-    const existingDocs = existingEventsSnapshot.docs;
-    
-    for (let i = 0; i < existingDocs.length; i += batchSize) {
-      const batch = db.batch();
-      const batchItems = existingDocs.slice(i, i + batchSize);
-      
-      for (const doc of batchItems) {
-        batch.delete(doc.ref);
+
+    if (pendingDocs.length > 0) {
+      const batchSize = 500;
+
+      for (let i = 0; i < pendingDocs.length; i += batchSize) {
+        const batch = db.batch();
+        const batchItems = pendingDocs.slice(i, i + batchSize);
+
+        for (const doc of batchItems) {
+          batch.delete(doc.ref);
+        }
+
+        await batch.commit();
       }
-      
-      await batch.commit();
-      logger.info(`Deleted batch: ${Math.min(i + batchSize, existingDocs.length)}/${existingDocs.length} events`, {
+
+      logger.info(`Successfully deleted ${pendingDocs.length} pending events for ${dateKey}`, {
         userId,
         dateKey,
       });
     }
-    
-    logger.info(`Successfully deleted all existing events for ${dateKey}`, {
-      userId,
-      dateKey,
-      deletedCount: existingDocs.length,
-    });
-    
-    // Clear existingDocIds since we deleted all events
-    existingDocIds = new Set();
+
+    // Keep non-pending doc IDs so we don't recreate them with wrong status
+    existingDocIds = new Set(nonPendingDocs.map((doc) => doc.id));
   } else {
     // Only create Set if we didn't delete
     existingDocIds = new Set(
@@ -726,13 +731,13 @@ async function sendRoutineEventNotification(userId, eventId, eventData) {
     const sentOk = response.successCount > 0;
 
     await eventRef.update({
-      status: "completed",
+      status: "ongoing",
       notificationSent: sentOk,
       notificationSentAt: sentOk ? admin.firestore.FieldValue.serverTimestamp() : null,
     });
 
     if (!sentOk) {
-      logger.warn(`Notification send had zero successes for ${eventId}, but status updated to completed`, {
+      logger.warn(`Notification send had zero successes for ${eventId}, but status updated to ongoing`, {
         userId,
         routineId,
         dateKey,
@@ -977,7 +982,7 @@ exports.getNotificationHistory = onCall(
   }
 );
 
-// Scheduled function to mark past pending routine events as completed
+// Scheduled function to mark past pending routine events as ongoing
 // Runs every 5 minutes and marks events with scheduledDateTime <= now and status == 'pending'
 // This prevents events from remaining in 'pending' after their scheduled time has passed.
 exports.markPastRoutineEventsCompleted = onSchedule(
@@ -1020,14 +1025,14 @@ exports.markPastRoutineEventsCompleted = onSchedule(
           const batch = db.batch();
           for (const doc of eventsSnapshot.docs) {
             batch.update(doc.ref, {
-              status: "completed",
+              status: "ongoing",
               updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
           }
 
           await batch.commit();
 
-          logger.info(`Marked ${eventsSnapshot.size} past events as completed for user ${userId}`);
+          logger.info(`Marked ${eventsSnapshot.size} past events as ongoing for user ${userId}`);
         } catch (err) {
           logger.error(`Error marking past events for user ${userId}`, {
             userId,
@@ -1089,7 +1094,7 @@ exports.markPastRoutineEventsCompletedNow = onCall(
         const batch = db.batch();
         for (const doc of eventsSnapshot.docs) {
           batch.update(doc.ref, {
-            status: "completed",
+            status: "ongoing",
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
           });
         }
@@ -1100,7 +1105,7 @@ exports.markPastRoutineEventsCompletedNow = onCall(
         if (eventsSnapshot.size < 500) break;
       }
 
-      logger.info(`Marked ${totalUpdated} past events as completed for user ${userId}`);
+      logger.info(`Marked ${totalUpdated} past events as ongoing for user ${userId}`);
 
       return {
         success: true,
@@ -1115,6 +1120,375 @@ exports.markPastRoutineEventsCompletedNow = onCall(
         stack: error.stack,
       });
       throw new Error(`Failed to mark past events: ${error.message}`);
+    }
+  }
+);
+
+// Callable function to mark ongoing events as missed
+// iOS sends current device date; any ongoing event where scheduledDateTime < clientDate → missed
+exports.markMissedRoutineEvents = onCall(
+  {
+    memory: "256MiB",
+    maxInstances: 1,
+  },
+  async (request) => {
+    const userId = request.data?.userId || request.auth?.uid;
+
+    if (!userId) {
+      throw new Error("User must be authenticated or userId must be provided");
+    }
+
+    // iOS sends current device date as ISO string
+    const clientDateStr = request.data?.currentDate;
+    if (!clientDateStr) {
+      throw new Error("currentDate is required");
+    }
+
+    const clientDate = new Date(clientDateStr);
+    if (isNaN(clientDate.getTime())) {
+      throw new Error("Invalid currentDate format. Use ISO 8601 string.");
+    }
+
+    const clientTs = admin.firestore.Timestamp.fromDate(clientDate);
+
+    logger.info("markMissedRoutineEvents called", {
+      userId,
+      clientDate: clientDate.toISOString(),
+    });
+
+    try {
+      let totalUpdated = 0;
+
+      while (true) {
+        const eventsSnapshot = await db
+          .collection("users")
+          .doc(userId)
+          .collection("routineEvents")
+          .where("status", "==", "ongoing")
+          .where("scheduledDateTime", "<", clientTs)
+          .limit(500)
+          .get();
+
+        if (eventsSnapshot.empty) break;
+
+        const batch = db.batch();
+        for (const doc of eventsSnapshot.docs) {
+          batch.update(doc.ref, {
+            status: "missed",
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+
+        await batch.commit();
+        totalUpdated += eventsSnapshot.size;
+
+        if (eventsSnapshot.size < 500) break;
+      }
+
+      logger.info(`Marked ${totalUpdated} events as missed for user ${userId}`);
+
+      return {
+        success: true,
+        updatedCount: totalUpdated,
+        userId,
+        clientDate: clientDate.toISOString(),
+      };
+    } catch (error) {
+      logger.error("Error in markMissedRoutineEvents", {
+        userId,
+        error: error.message,
+        stack: error.stack,
+      });
+      throw new Error(`Failed to mark missed events: ${error.message}`);
+    }
+  }
+);
+
+// Scheduled function to automatically mark ongoing events as missed
+// Runs every 5 minutes: any ongoing event where scheduledDateTime < now → missed
+exports.markMissedRoutineEventsScheduled = onSchedule(
+  {
+    schedule: "every 5 minutes",
+    timeZone: "America/New_York",
+    memory: "256MiB",
+    maxInstances: 1,
+  },
+  async (_event) => {
+    try {
+      logger.info("Starting markMissedRoutineEventsScheduled");
+
+      const now = new Date();
+      // Grace period: only mark as missed if scheduled time was > 30 minutes ago
+      // This ensures iOS has enough time to show the 'ongoing' state to the user
+      const gracePeriodMs = 30 * 60 * 1000;
+      const missedCutoff = new Date(now.getTime() - gracePeriodMs);
+      const missedCutoffTs = admin.firestore.Timestamp.fromDate(missedCutoff);
+
+      const usersSnapshot = await db.collection("users").get();
+      if (usersSnapshot.empty) {
+        logger.info("No users found");
+        return;
+      }
+
+      for (const userDoc of usersSnapshot.docs) {
+        const userId = userDoc.id;
+
+        try {
+          let totalUpdated = 0;
+
+          while (true) {
+            const eventsSnapshot = await db
+              .collection("users")
+              .doc(userId)
+              .collection("routineEvents")
+              .where("status", "==", "ongoing")
+              .where("scheduledDateTime", "<", missedCutoffTs)
+              .limit(500)
+              .get();
+
+            if (eventsSnapshot.empty) break;
+
+            const batch = db.batch();
+            for (const doc of eventsSnapshot.docs) {
+              batch.update(doc.ref, {
+                status: "missed",
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+              });
+            }
+
+            await batch.commit();
+            totalUpdated += eventsSnapshot.size;
+
+            if (eventsSnapshot.size < 500) break;
+          }
+
+          if (totalUpdated > 0) {
+            logger.info(`Marked ${totalUpdated} events as missed for user ${userId}`);
+          }
+        } catch (err) {
+          logger.error(`Error marking missed events for user ${userId}`, {
+            userId,
+            error: err.message,
+            stack: err.stack,
+          });
+        }
+      }
+
+      logger.info("markMissedRoutineEventsScheduled completed", {
+        missedCutoff: missedCutoff.toISOString(),
+      });
+    } catch (error) {
+      logger.error("Error in markMissedRoutineEventsScheduled", {
+        error: error.message,
+        stack: error.stack,
+      });
+      throw error;
+    }
+  }
+);
+
+// ============================================================
+// PARENT ACCESS REQUEST EMAIL
+// ============================================================
+
+function generateParentAccessRequestEmailHtml(parentName, caregiverName, message) {
+  const messageBlock = message && message.trim() !== "" ? `
+              <!-- Personal Message -->
+              <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #22c55e; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+                <p style="margin: 0 0 8px; color: #6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+                  Personal Message
+                </p>
+                <p style="margin: 0; color: #1f2937; font-size: 16px; line-height: 1.6; font-style: italic;">
+                  "${message.trim()}"
+                </p>
+              </div>` : "";
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caregiver Access Request</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 16px 16px 0 0;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
+                🍼 Motherboard
+              </h1>
+              <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">
+                Baby Care Made Simple
+              </p>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px; font-weight: 600;">
+                Hi ${parentName}! 👋
+              </h2>
+
+              <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                <strong style="color: #6366f1;">${caregiverName}</strong> is requesting access to your <strong>Motherboard</strong> account as a caregiver.
+              </p>
+
+              <p style="margin: 0 0 30px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                As a caregiver, they'll be able to help track feedings, diaper changes, sleep schedules, and more for your little one.
+              </p>
+
+              ${messageBlock}
+
+              <!-- How to Respond -->
+              <div style="background-color: #f9fafb; border-radius: 12px; padding: 24px; margin-bottom: 30px;">
+                <p style="margin: 0 0 16px; color: #1f2937; font-size: 16px; font-weight: 600;">
+                  How to grant access:
+                </p>
+                <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0; color: #4b5563; font-size: 15px;">
+                      <span style="display: inline-block; width: 28px; height: 28px; background-color: #6366f1; color: white; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 12px; font-weight: 600;">1</span>
+                      Open the Motherboard app
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #4b5563; font-size: 15px;">
+                      <span style="display: inline-block; width: 28px; height: 28px; background-color: #6366f1; color: white; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 12px; font-weight: 600;">2</span>
+                      Go to Settings → Caregivers
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #4b5563; font-size: 15px;">
+                      <span style="display: inline-block; width: 28px; height: 28px; background-color: #6366f1; color: white; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 12px; font-weight: 600;">3</span>
+                      Send a caregiver invitation to <strong>${caregiverName}</strong>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- CTA Button -->
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td align="center">
+                    <a href="https://apps.apple.com/app/motherboard" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 50px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);">
+                      Open Motherboard
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 16px 16px; text-align: center;">
+              <p style="margin: 0 0 10px; color: #9ca3af; font-size: 14px;">
+                If you don't know ${caregiverName} or did not expect this request, you can safely ignore this email.
+              </p>
+              <p style="margin: 0; color: #9ca3af; font-size: 14px;">
+                © ${new Date().getFullYear()} Motherboard. Made with ❤️ for parents everywhere.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
+exports.sendParentAccessRequestEmail = onCall(
+  {
+    memory: "256MiB",
+    maxInstances: 10,
+  },
+  async (request) => {
+    const {toEmail, parentName, caregiverName, message} = request.data || {};
+
+    // Validate required fields
+    if (!toEmail || !caregiverName) {
+      logger.error("Missing required fields for parent access request email", {
+        hasToEmail: !!toEmail,
+        hasCaregiverName: !!caregiverName,
+      });
+      throw new Error("Missing required fields: toEmail, caregiverName");
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(toEmail)) {
+      logger.error("Invalid email format", {toEmail});
+      throw new Error("Invalid email format");
+    }
+
+    const resolvedParentName = parentName || "there";
+    const resolvedMessage = message || "";
+
+    logger.info("Sending parent access request email", {
+      toEmail,
+      parentName: resolvedParentName,
+      caregiverName,
+      hasMessage: resolvedMessage.trim() !== "",
+    });
+
+    try {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: EMAIL_CONFIG.user,
+          pass: EMAIL_CONFIG.pass,
+        },
+      });
+
+      const htmlContent = generateParentAccessRequestEmailHtml(
+        resolvedParentName,
+        caregiverName,
+        resolvedMessage
+      );
+
+      const mailOptions = {
+        from: `"Motherboard" <${EMAIL_CONFIG.user}>`,
+        to: toEmail,
+        subject: `[Motherboard] Caregiver Access Request from ${caregiverName}`,
+        html: htmlContent,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+
+      logger.info("Parent access request email sent successfully", {
+        toEmail,
+        caregiverName,
+        messageId: info.messageId,
+      });
+
+      return {
+        success: true,
+        messageId: info.messageId,
+      };
+    } catch (error) {
+      logger.error("Failed to send parent access request email", {
+        toEmail,
+        caregiverName,
+        error: error.message,
+        stack: error.stack,
+      });
+
+      // Return success regardless — iOS does not retry on email failure
+      return {
+        success: true,
+        messageId: null,
+        warning: "Email could not be delivered",
+      };
     }
   }
 );
@@ -1246,7 +1620,6 @@ exports.sendCaregiverInviteEmail = onCall(
   {
     memory: "256MiB",
     maxInstances: 10,
-    secrets: [gmailEmail, gmailAppPassword],
   },
   async (request) => {
     const {toEmail, caregiverName, code, kidName} = request.data || {};
@@ -1281,8 +1654,8 @@ exports.sendCaregiverInviteEmail = onCall(
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: gmailEmail.value(),
-          pass: gmailAppPassword.value(),
+          user: EMAIL_CONFIG.user,
+          pass: EMAIL_CONFIG.pass,
         },
       });
 
@@ -1291,7 +1664,7 @@ exports.sendCaregiverInviteEmail = onCall(
 
       // Send email
       const mailOptions = {
-        from: `"Motherboard" <${gmailEmail.value()}>`,
+        from: `"Motherboard" <${EMAIL_CONFIG.user}>`,
         to: toEmail,
         subject: "You've been invited as a Caregiver on Motherboard!",
         html: htmlContent,
